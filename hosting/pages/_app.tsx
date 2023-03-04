@@ -6,21 +6,8 @@ import { configureChains, createClient, WagmiConfig } from "wagmi";
 import { mainnet, polygon, optimism, arbitrum, goerli } from "wagmi/chains";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
-import {
-  ChakraBaseProvider,
-  extendBaseTheme,
-  ChakraProvider,
-} from "@chakra-ui/react";
-// `@chakra-ui/theme` is a part of the base install with `@chakra-ui/react`
-import chakraTheme from "@chakra-ui/theme";
-
-const { Button } = chakraTheme.components;
-
-const theme = extendBaseTheme({
-  components: {
-    Button,
-  },
-});
+import { ChakraProvider } from "@chakra-ui/react";
+import { AragonSDKWrapper } from "../context/AragonSDK";
 
 const { chains, provider, webSocketProvider } = configureChains(
   [
@@ -32,9 +19,7 @@ const { chains, provider, webSocketProvider } = configureChains(
   ],
   [
     alchemyProvider({
-      // This is Alchemy's default API key.
-      // You can get your own at https://dashboard.alchemyapi.io
-      apiKey: "gFMZ8OvZToICTnOZyyAP3PWeZbO0SbWu",
+      apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY,
     }),
     publicProvider(),
   ]
@@ -57,7 +42,9 @@ function MyApp({ Component, pageProps }: AppProps) {
     <WagmiConfig client={wagmiClient}>
       <ChakraProvider>
         <RainbowKitProvider chains={chains}>
-          <Component {...pageProps} />
+          <AragonSDKWrapper>
+            <Component {...pageProps} />
+          </AragonSDKWrapper>
         </RainbowKitProvider>
       </ChakraProvider>
     </WagmiConfig>
