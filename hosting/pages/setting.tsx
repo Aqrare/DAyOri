@@ -4,28 +4,21 @@ import styles from "../styles/Home.module.css";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { initializeApp } from "firebase/app";
 import {
-  Box,
   Button,
-  Checkbox,
   Flex,
   FormControl,
   FormLabel,
   Heading,
-  Input,
   Spacer,
   Stack,
   Switch,
-  Text,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import {
   getDatabase,
   ref,
-  set,
   child,
   get,
-  push,
   update,
 } from "firebase/database";
 import { firebaseConfig } from "../utils/firebase";
@@ -39,14 +32,11 @@ interface SettingsProps {
 const Settings: NextPage<SettingsProps> = ({ contractAddress, address }) => {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [notificationConfig, setNotificationConfig] = useState({});
   const [notificationKeys, setotificationKeys] = useState<string[]>([]);
   const [notificationList, setNotificationList] = useState([]);
 
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
-  console.log(contractAddress, "setting, contractaddress");
-  console.log(address, "setting, address");
 
   useEffect(() => {
     async function getUserNotification() {
@@ -63,7 +53,6 @@ const Settings: NextPage<SettingsProps> = ({ contractAddress, address }) => {
         await get(child(dbRef, `users/${address}/contracts/${contractAddress}`))
           .then((snapshot) => {
             const data = snapshot.val();
-            setNotificationConfig(data);
             const obj = Object.values(data);
             setNotificationList(obj);
             const keys = Object.keys(data);
@@ -100,7 +89,7 @@ const Settings: NextPage<SettingsProps> = ({ contractAddress, address }) => {
       });
       console.log(obj);
       await update(ref(database), updates);
-      console.log("finish");
+      console.log("Saved");
     } catch {
       console.log("error");
     }

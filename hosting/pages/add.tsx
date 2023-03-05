@@ -1,6 +1,5 @@
 import type { NextPage, NextPageContext } from "next";
 import {
-  Box,
   Button,
   Flex,
   FormControl,
@@ -11,10 +10,6 @@ import {
   Switch,
   Text,
 } from "@chakra-ui/react";
-import { ethers } from "ethers";
-import { abi } from "../../functions/lib/abi";
-import Moralis from "moralis";
-import { EvmChain } from "@moralisweb3/evm-utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import styles from "../styles/Home.module.css";
 import React, { useEffect, useState } from "react";
@@ -28,8 +23,6 @@ import {
   set,
   child,
   get,
-  push,
-  update,
 } from "firebase/database";
 import { Client, DaoDetails } from "@aragon/sdk-client";
 import { useAragonSDKContext } from "../context/AragonSDK";
@@ -92,19 +85,22 @@ const Add: NextPage<AddProps> = ({ address }) => {
     async function getDaoInfo() {
       console.log(context);
       if (context || contractAddress) {
-        const client = new Client(context); // general purpose client allowing us to call getDao
-        const daoAddressOrEns: string = contractAddress;
+        try {
+          const client = new Client(context); 
+          const daoAddressOrEns: string = contractAddress;
 
-        const dao: DaoDetails | null = await client.methods.getDao(
-          daoAddressOrEns
-        ); // returns details about our DAO
-        setDao(dao);
+          const dao: DaoDetails | null = await client.methods.getDao(
+            daoAddressOrEns
+          );
+          setDao(dao);
+        } catch {
+          return;
+        }
       }
     }
     getDaoInfo();
   }, [context, contractAddress]);
 
-  console.log(dao);
 
   const save = async () => {
     const obj = createObjectFromKeysValues(notificationKeys, notificationList);
@@ -123,6 +119,10 @@ const Add: NextPage<AddProps> = ({ address }) => {
       await set(
         ref(database, `daos/${governanceContract}/name`),
         dao.metadata.name
+      );
+      await set(
+        ref(database, `daos/${governanceContract}/dao`),
+        contractAddress
       );
     }
     notificationKeys.forEach(async (key) => {
