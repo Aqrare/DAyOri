@@ -1,20 +1,8 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-// import * as sgMail from "@sendgrid/mail";
-// import { ethers } from "ethers";
 import Moralis from "moralis";
 import {EvmChain} from "@moralisweb3/common-evm-utils";
 import * as nodemailer from "nodemailer";
-// import { Wallet } from "@ethersproject/wallet";
-// import {
-//   Context,
-//   ContextParams,
-//   // ContextPlugin,
-//   // MultisigClient,
-//   // MultisigProposal,
-//   Client,
-//   DaoDetails,
-// } from "@aragon/sdk-client";
 
 admin.initializeApp(functions.config().firebase);
 export const database = admin.database();
@@ -81,17 +69,13 @@ export const sendEmail = async (
   templateId: string,
   contractAddress: string
 ) => {
-  const displayName = ""; // ユーザの表示名
-  // const text = getMailText();
   console.log(templateId, contractAddress);
 
   const mailOptions = {
-    from: `Your Name <${gmailEmail}>`,
+    from: `DAyOri <${gmailEmail}>`,
     to,
     subject: `New proposal at ${name}`,
-    text: `Hello ${
-      displayName || ""
-    }! Welcome to My App. I hope you will enjoy using our service.`,
+    text: "New proposal is created",
   };
 
   return await mailTransport.sendMail(mailOptions).then(() => {
@@ -102,26 +86,66 @@ export const sendEmail = async (
 export const sendEmailWithTime = async (
   name: string,
   to: string,
-  templateId: string,
-  contractAddress: string,
   proposalCreator: string | null,
   startDate: string,
   endDate: string,
   url: string
 ) => {
-  const displayName = ""; // ユーザの表示名
-  // const text = getMailText();
-  console.log(templateId, contractAddress);
-
   const mailOptions = {
-    from: `Your Name <${gmailEmail}>`,
+    from: `DAyOri <${gmailEmail}>`,
     to,
     subject: `New proposal at ${name}`,
-    text: `Hello ${displayName || ""}! 
+    text: `Hello
     New proposal is created from ${proposalCreator}
     Proposal Duration : 
     ${startDate} ~ ${endDate}
     
+    Go to the Aragon App and see the proposal
+    ${url}`,
+  };
+
+  return await mailTransport.sendMail(mailOptions).then(() => {
+    console.log(`New welcome email sent to: ${to}`);
+  });
+};
+
+export const sendEmailMemberAdded = async (
+  name: string,
+  to: string,
+  members: string[],
+  url: string
+) => {
+  const mailOptions = {
+    from: `DAyOri <${gmailEmail}>`,
+    to,
+    subject: `New members added at ${name}`,
+    text: `Hello 
+    New members are joined to our DAO ! 
+
+    New members:
+    ${members},
+
+    Go to the Aragon App and say hello to them!
+    ${url}`,
+  };
+
+  return await mailTransport.sendMail(mailOptions).then(() => {
+    console.log(`New welcome email sent to: ${to}`);
+  });
+};
+
+export const sendEmailProposalExecuted = async (
+  name: string,
+  to: string,
+  url: string
+) => {
+  const mailOptions = {
+    from: `DAyOri <${gmailEmail}>`,
+    to,
+    subject: `Proposal is executed at ${name}`,
+    text: `Hello 
+    The proposal is executed!
+
     Go to the Aragon App and see the proposal
     ${url}`,
   };
@@ -147,35 +171,16 @@ export const changeBigintUNIXToDate = (hexString: string) => {
   return date;
 };
 
-// export const getDao = functions.https.onRequest(async (req, res) => {
-//   const aragonSDKContextParams: ContextParams = {
-//     network: "goerli",
-//     signer: new Wallet(
-//       "35046882a8e35435b3e0620580c6d40e86ae85f96c0b95bc8f8360e5d4a0be52"
-//     ),
-//     daoFactoryAddress: "0x16B6c6674fEf5d29C9a49EA68A19944f5a8471D3",
-//     web3Providers: [
-//       "https://eth-goerli.gateway.pokt.network/v1/lb/db7489ea80908cbd824a05ac",
-//     ],
-//     ipfsNodes: [
-//       {
-//         url: "https://testing-ipfs-0.aragon.network/api/v0",
-//         headers: {
-//           "X-API-KEY": "b477RhECf8s8sdM7XrkLBs2wHc4kCMwpbcFC55Kt" || "",
-//         },
-//       },
-//     ],
-//     graphqlNodes: [
-//       {
-//         url: "https://subgraph.satsuma-prod.com/qHR2wGfc5RLi6/aragon/osx-goerli/version/v1.0.0/api",
-//       },
-//     ],
-//   };
-//   const context = new Context(aragonSDKContextParams);
-//   const client = new Client(context);
-//   const daoAddressOrEns = "0x9f119c1ad06a49216d2dc6a16506fac76e9d9a58";
+export const getDaoFromGoveror = async (governerContract: string) => {
+  const ref = admin.database().ref(`daos/${governerContract}`);
+  const snapshot = await ref.once("value");
+  const daoContractAddress = snapshot.child("dao").val();
+  return daoContractAddress;
+};
 
-//   const dao: DaoDetails | null =
-// await client.methods.getDao(daoAddressOrEns);
-//   console.log(dao);
-// });
+export const ensResolve = async (hexString: string, provider: any) => {
+  const bigIntValue = await BigInt(hexString);
+  const result = "0x" + bigIntValue.toString(16).toLowerCase();
+  const ens: string = await provider.lookupAddress(result);
+  return [result, ens];
+};

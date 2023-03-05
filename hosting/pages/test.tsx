@@ -26,7 +26,7 @@ const Test: NextPage = () => {
   };
 
   const getTopic = async () => {
-    const message = "ProposalCreated(uint256,address,uint64,uint64,bytes,(address,uint256,bytes)[],uint256)"
+    const message = "MembersAdded(address[])";
     // const hash = ethers.utils.keccak256(message);
     const signature =
       "ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string)";
@@ -36,6 +36,19 @@ const Test: NextPage = () => {
     console.log(topic0);
 
   };
+
+  const provider = new ethers.providers.JsonRpcProvider(
+    `https://goerli.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_PROJECT_ID}`
+  );
+
+  const bytesss = async() => {
+    const hexString =
+      "0x00000000000000000000000065150B5FA861481651225EF4412136DCBF696232";
+    const bigIntValue = BigInt(hexString);
+    const result = "0x" + bigIntValue.toString(16).toLowerCase();
+    const ens = await provider.lookupAddress(result);
+    console.log(ens);
+  }
 
   const getLogs = async() => {
     try {
@@ -76,6 +89,7 @@ const Test: NextPage = () => {
       </Button>
       <Button onClick={getTopic}></Button>
       <Button onClick={getLogs}>Get Logs</Button>
+      <Button onClick={bytesss}>ByteAddressconvert</Button>
     </>
   );
 };

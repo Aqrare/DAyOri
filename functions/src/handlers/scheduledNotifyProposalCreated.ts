@@ -9,6 +9,8 @@ import {
   getEmailList,
   getDaoName,
   changeBigintUNIXToDate,
+  getDaoFromGoveror,
+  ensResolve,
 } from "../utils";
 
 export const scheduledNotifyProposalCreated = functions.pubsub
@@ -16,17 +18,11 @@ export const scheduledNotifyProposalCreated = functions.pubsub
   .onRun(async () => {
     const result = await task();
     console.log(result);
-    // if (result.isErr()) {
-    //   console.error(result.error);
-    //   return result.error;
-    // }
-    // return result.value;
   });
 
-const INFURA_ID = functions.config().infura.id || process.env.INFURA_PROJECT_ID;
-
+const POCKET_ID = functions.config().pocket.id || process.env.POCKET_ID;
 const provider = new ethers.providers.JsonRpcProvider(
-  `https://goerli.infura.io/v3/${INFURA_ID}`
+  `https://eth-goerli.gateway.pokt.network/v1/lb/${POCKET_ID}`
 );
 
 const topics: string[] = [
@@ -62,16 +58,19 @@ const task = async () => {
         if (topicsIndex == 0) {
           console.log(log.topics);
           const proposalCreator = log.topics[2];
+          const [proposer, ens] = await ensResolve(
+            proposalCreator || "",
+            provider
+          );
           const startDate = getStartDate(log.data);
           const endDate = getEndData(log.data);
-          const url = `https://app.aragon.org/#/daos/goerli/${contractAddress}/dashboard`;
+          const daoContractAddress = await getDaoFromGoveror(contractAddress);
+          const url = `https://app.aragon.org/#/daos/goerli/${daoContractAddress}/dashboard`;
           emails.forEach((email) => {
             sendEmailWithTime(
               daoName,
               email,
-              templateId,
-              contractAddress,
-              proposalCreator,
+              ens || proposer,
               startDate.toString(),
               endDate.toString(),
               url
@@ -120,8 +119,6 @@ export const testtesttask = async () => {
             sendEmailWithTime(
               daoName,
               email,
-              templateId,
-              contractAddress,
               proposalCreator,
               startDate.toString(),
               endDate.toString(),

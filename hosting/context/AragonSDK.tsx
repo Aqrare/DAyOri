@@ -12,18 +12,20 @@ export function AragonSDKWrapper({ children }: any): JSX.Element {
   const signer = useSigner().data || undefined;
 
   useEffect(() => {
+    const POCKET_ID = process.env.NEXT_PUBLIC_POCKET_ID;
+    const IPFS_API_KEY = process.env.NEXT_PUBLIC_IPFS_API_KEY || "";
     const aragonSDKContextParams: ContextParams = {
       network: "goerli", // mainnet, mumbai, etc
       signer,
       daoFactoryAddress: "0x16B6c6674fEf5d29C9a49EA68A19944f5a8471D3",
       web3Providers: [
-        "https://eth-goerli.gateway.pokt.network/v1/lb/db7489ea80908cbd824a05ac",
+        `https://eth-goerli.gateway.pokt.network/v1/lb/${POCKET_ID}`,
       ],
       ipfsNodes: [
         {
           url: "https://testing-ipfs-0.aragon.network/api/v0", // you should set up your own IPFS node locally
           headers: {
-            "X-API-KEY": "b477RhECf8s8sdM7XrkLBs2wHc4kCMwpbcFC55Kt" || "",
+            "X-API-KEY": IPFS_API_KEY,
           },
         },
       ],
